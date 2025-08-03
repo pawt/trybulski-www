@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Personal website and blog">
+    <meta name="author" content="your name">
+    <meta name="theme-color" content="#ffffff">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://yourname.com/">
+    <meta property="og:title" content="your name">
+    <meta property="og:description" content="Personal website and blog">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary">
+    <meta property="twitter:url" content="https://yourname.com/">
+    <meta property="twitter:title" content="your name">
+    <meta property="twitter:description" content="Personal website and blog">
+    
+    <title>your name</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;1,200;1,300;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./css/styles.css">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+</head>
+<body>
+    <!-- Home Page -->
+    <main id="home-page" role="main">
+        <header>
+            <h1>pawel trybulski</h1>
+        </header>
+        
+        <section class="quote" aria-label="Inspirational quote">
+            "Insert your favorite meaningful quote here that reflects your values and worldview. Something that inspires you or captures your philosophy on life and work." <span class="quote-author">/ author name</span>
+        </section>
+
+        <section class="bio" aria-label="Biography">
+            your name is a [adjective describing yourself] person who lives in [city, state/country]. [his/her/their] favorite authors are [author 1] and [author 2]. <a href="https://twitter.com/yourusername" rel="noopener noreferrer" target="_blank" aria-label="Twitter profile">this</a> is [his/her/their] twitter.
+        </section>
+
+        <nav class="nav-section" aria-label="Writing">
+            <h2 class="nav-title">writing</h2>
+            <ul class="nav-list">
+                <li><a href="#post/first-blog-post" aria-describedby="post1-date">your first blog post title</a><span class="date" id="post1-date">january 15, 2025</span></li>
+                <li><a href="#post/another-interesting-post" aria-describedby="post2-date">another interesting post</a><span class="date" id="post2-date">december 20, 2024</span></li>
+                <li><a href="#post/thoughts-on-something-important" aria-describedby="post3-date">thoughts on something important</a><span class="date" id="post3-date">november 10, 2024</span></li>
+            </ul>
+        </nav>
+
+        <section class="nav-section" aria-label="Work experience">
+            <h2 class="nav-title">work</h2>
+            <ul class="nav-list">
+                <li><strong>current company</strong><br>current title</li>
+                <li><strong>previous company</strong><br>previous title</li>
+                <li><strong>another company</strong><br>role title</li>
+                <li><strong>education</strong><br>degree & school</li>
+            </ul>
+        </section>
+
+        <nav class="nav-section" aria-label="Other interests">
+            <h2 class="nav-title">other</h2>
+            <ul class="nav-list">
+                <li><a href="#hobby1">hobby or project</a></li>
+                <li><a href="#hobby2">another interest</a></li>
+            </ul>
+        </nav>
+    </main>
+
+    <!-- Blog Post Container (populated dynamically from markdown files) -->
+    <article id="post-page" class="hidden" role="main">
+        <div id="post-content">
+            <!-- Content loaded from markdown files -->
+        </div>
+        
+        <nav class="back-link">
+            <a href="#" aria-label="Go back to home page">← back</a>
+        </nav>
+    </article>
+
+    <script>
+        // Simple markdown parser
+        function parseMarkdown(markdown) {
+            return markdown
+                // Headers
+                .replace(/^# (.*$)/gm, '<h1 class="article-title">$1</h1>')
+                .replace(/^## (.*$)/gm, '<h2>$1</h2>')
+                .replace(/^### (.*$)/gm, '<h3>$1</h3>')
+                // Italic dates
+                .replace(/^\*(.*)\*$/gm, '<p class="date">$1</p>')
+                // Bold
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                // Italic (not dates)
+                .replace(/(?<!^)\*(.*?)\*(?!$)/g, '<em>$1</em>')
+                // Links
+                .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" rel="noopener noreferrer" target="_blank">$1</a>')
+                // Horizontal rules
+                .replace(/^---$/gm, '<div class="separator" aria-hidden="true">==</div>')
+                // Paragraphs
+                .replace(/^(?!<[h|div|p])(.+)$/gm, '<p>$1</p>')
+                // Clean up empty paragraphs
+                .replace(/<p>\s*<\/p>/g, '');
+        }
+
+        // Navigation functions
+        function showHome() {
+            document.getElementById('home-page').classList.remove('hidden');
+            document.getElementById('post-page').classList.add('hidden');
+            document.title = 'pawel trybulski';
+            window.location.hash = '';
+        }
+
+        async function showPost(postSlug) {
+            try {
+                const response = await fetch(`posts/${postSlug}.md`);
+                if (!response.ok) throw new Error('Post not found');
+                
+                const markdown = await response.text();
+                const html = parseMarkdown(markdown);
+                
+                document.getElementById('post-content').innerHTML = `<div class="article-content">${html}</div>`;
+                document.getElementById('home-page').classList.add('hidden');
+                document.getElementById('post-page').classList.remove('hidden');
+                
+                // Update title from h1 in content
+                const titleElement = document.querySelector('#post-content h1');
+                const title = titleElement ? titleElement.textContent : 'Blog Post';
+                document.title = `${title} - pawel trybulski`;
+                
+            } catch (error) {
+                console.error('Error loading post:', error);
+                // Fallback to home page
+                showHome();
+            }
+        }
+
+        // Handle navigation
+        document.addEventListener('DOMContentLoaded', function() {
+            // Handle post links
+            const postLinks = document.querySelectorAll('a[href^="#post/"]');
+            postLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const postSlug = this.getAttribute('href').replace('#post/', '');
+                    showPost(postSlug);
+                    window.location.hash = this.getAttribute('href');
+                });
+            });
+
+            // Handle back links
+            document.addEventListener('click', function(e) {
+                if (e.target.matches('.back-link a')) {
+                    e.preventDefault();
+                    showHome();
+                }
+            });
+
+            // Handle initial load with hash
+            if (window.location.hash && window.location.hash.startsWith('#post/')) {
+                const postSlug = window.location.hash.replace('#post/', '');
+                showPost(postSlug);
+            }
+        });
+    </script>
+</body>
+</html>
